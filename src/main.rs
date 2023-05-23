@@ -1,4 +1,5 @@
 use rpassword::read_password;
+use std::collections::HashSet;
 use std::io;
 use std::io::Write;
 use tokio::select;
@@ -8,22 +9,28 @@ trait DbEntryTrait {
     fn read_entry(&self) -> Result<(), String>;
 }
 
-#[derive(Debug)]
 enum Database {
     JsonDB(JsonDB),
 }
 
-#[derive(Debug)]
 struct JsonDB {
     name: String,
     path: String,
+    entries: HashSet<Entry>,
 }
 
 impl JsonDB {
     fn new(db_path: &str) -> Self {
+        let mut entries = HashSet::<Entry>::new();
+        entries.insert(Entry {
+            password: String::from("hallo Welt"),
+            website: String::from("hallo.welt.de"),
+            user: String::from("hallo@welt.de"),
+        });
         Self {
             name: String::from("JsonDB"),
             path: String::from(db_path),
+            entries: entries,
         }
     }
 
@@ -33,15 +40,55 @@ impl JsonDB {
     fn path(&self) -> String {
         self.path.clone()
     }
+    fn entries(&self) -> String {
+        let mut output = String::new();
+        for val in self.entries.iter() {
+            output.push_str(format!("Website: {}, User: {}\n", val.website, val.user).as_str());
+        }
+        output
+    }
 }
 impl DbEntryTrait for JsonDB {
     fn create_entry(&self) -> Result<(), String> {
-        todo!();
         Ok(())
     }
     fn read_entry(&self) -> Result<(), String> {
-        todo!();
         Ok(())
+    }
+}
+
+#[derive(PartialEq, Eq, Hash)]
+struct Entry {
+    website: String,
+    user: String,
+    password: String,
+}
+
+impl Entry {
+    fn new(website: String, user: String, password: String) -> Result<Self, String> {
+        if !Self::check_password(password.clone()) {
+            return Err(String::from("Wrong Password"));
+        }
+        if !Self::check_user(user.clone()) {
+            return Err(String::from("Wrong Username"));
+        }
+        if !Self::check_website(website.clone()) {
+            return Err(String::from("Wrong Website"));
+        }
+        Ok(Self {
+            website,
+            user,
+            password,
+        })
+    }
+    fn check_password(_password: String) -> bool {
+        true
+    }
+    fn check_user(_user: String) -> bool {
+        true
+    }
+    fn check_website(_website: String) -> bool {
+        true
     }
 }
 
@@ -61,17 +108,27 @@ async fn get_password() -> String {
 
 #[tokio::main]
 async fn main() {
+    env_logger::init();
     println!("Welcome to the password manager.\nEnter a command (help for more information)");
 
     // open database
-    let db = Database::JsonDB(JsonDB::new("cats.db"));
+    log::debug!("open database");
+    let db = Database::JsonDB(JsonDB::new("database.json"));
     match db {
-        Database::JsonDB(val) => {
-            println!("Database: {}", val.name());
-            println!("Path: {}", val.path());
+        Database::JsonDB(mut val) => {
+            // Test entry. Later it should be an own test case.
+            let entry = Entry::new(
+                String::from("www.testsite.de"),
+                String::from("HelloWorld@testsite.de"),
+                String::from("SecretPassword42"),
+            )
+            .unwrap();
+            val.entries.insert(entry);
+            log::debug!("Database: {}", val.name());
+            log::debug!("Path: {}", val.path());
+            log::debug!("Entries:\n{}", val.entries());
         }
     }
-    //println!("db: {:?}", db);
     loop {
         select! {
             input = get_input() => {
@@ -89,15 +146,15 @@ async fn main() {
 async fn process_input(input: &str) {
     use ProcessCommands::*;
     let input = ProcessCommands::from(input.trim());
-    // Verarbeite die Eingabe
+    // process input 
     match input {
         Exit => {
-            println!("Das Programm wird beendet.");
+            println!("Program is terminated.");
             std::process::exit(0);
         }
         Master => {
             let passwd = get_password().await;
-            println!("password: {passwd}");
+            log::debug!("password: {passwd}");
         }
         Help => {
             ProcessCommands::list_commands().await;

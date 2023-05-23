@@ -6,7 +6,9 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+env_logger = "0.10.0"
 leveldb = "0.8.6"
+log = "0.4.17"
 rpassword = "7.2.0"
 rusqlite = "0.29.0"
 tokio = { version = "1.28.1", features = ["full"] }
