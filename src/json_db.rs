@@ -1,7 +1,7 @@
 //! JSON database
 
 use serde::{Deserialize, Serialize};
-use std::{collections::HashSet, fs::File, io::Read, path::Path};
+use std::{collections::HashSet, fmt::Display, fs::File, io::Read, path::Path};
 
 /// JSON database structure
 #[derive(Debug, PartialEq, Eq, Serialize, Deserialize)]
@@ -12,6 +12,19 @@ pub struct JsonDB {
     pub path: Box<Path>,
     /// entries
     pub entries: HashSet<Entry>,
+}
+
+impl Display for JsonDB {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        writeln!(f, "Database: {}", self.name).unwrap();
+        writeln!(f, "Path: {:?}", self.path).unwrap();
+        writeln!(f).unwrap();
+        self.entries.iter().for_each(|entry| {
+            writeln!(f, "{}", entry).unwrap();
+        });
+
+        Ok(())
+    }
 }
 
 impl JsonDB {
@@ -72,6 +85,15 @@ pub struct Entry {
     pub user: String,
     /// Password from the user
     pub password: String,
+}
+impl Display for Entry {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        writeln!(f, "{}", self.website).unwrap();
+        writeln!(f, "User: {}", self.user).unwrap();
+        writeln!(f, "Password: {}", self.password).unwrap();
+
+        Ok(())
+    }
 }
 
 impl Entry {

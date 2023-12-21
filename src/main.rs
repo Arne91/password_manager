@@ -4,29 +4,14 @@ mod cmd;
 mod json_db;
 use tokio::select;
 
-use crate::{
-    cmd::{get_input, process_input},
-    json_db::JsonDB,
-};
+use crate::cmd::{get_input, list_commands, process_input};
 
 #[tokio::main]
 async fn main() {
     env_logger::init();
     println!("Welcome to the password manager.\nEnter a command (help for more information)");
 
-    // open database
-    log::debug!("open database");
-    let db = JsonDB::new("Hallo Welt", "db");
-
-    log::debug!("db: {db:?}");
-
-    let db = JsonDB::open("database", "db");
-
-    log::debug!("Database: {}", db.name);
-    log::debug!("Path: {:?}", db.path);
-    for (idx, entry) in db.entries.iter().enumerate() {
-        log::debug!("Entry {idx}: {entry:?}");
-    }
+    list_commands();
     loop {
         select! {
             input = get_input() => {
@@ -39,6 +24,4 @@ async fn main() {
             }
         }
     }
-
-    // TODO save database and close!
 }

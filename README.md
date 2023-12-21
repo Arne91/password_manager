@@ -41,7 +41,9 @@ Work in progress.
 Upon running the program, you will be prompted to enter a command. The available commands are as follows:
 
 - `exit`: Terminates the program.
-- `master`: Prompts for a master password.
+- `load <database>`: Prompts for a database.
+- `close`: Close the database
+- `show`: Show database
 - `help`: Displays a list of available commands.
 
 Enter the desired command and press Enter to execute it. The program will perform the corresponding action and provide any relevant output.
